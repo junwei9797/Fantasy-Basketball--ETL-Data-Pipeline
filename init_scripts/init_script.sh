@@ -20,3 +20,8 @@ done
 
 echo "=== Healthcheck Log ==="
 docker inspect --format='{{json .State.Health.Log}}' fantasy_basketball_postgres
+
+#Create Airflow container
+
+#Create image for etl pipeline
+docker build -f ../pipeline/fantasy_etl.Dockerfile -t fantasy-etl-image ../
