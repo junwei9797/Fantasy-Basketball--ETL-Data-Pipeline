@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: fantasy_basketball_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./create_schema.sql:/docker-entrypoint-initdb.d/create_schema.sql
+      - ./init_healthcheck.sh:/init_healthcheck.sh
+    healthcheck:
+      test: [ "CMD-SHELL", "/init_healthcheck.sh" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  pgdata:
+

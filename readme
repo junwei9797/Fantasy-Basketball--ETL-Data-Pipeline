@@ -1,0 +1,10 @@
+End-to-End Data Pipeline (ETL) for Fantasy Basketball
+Tech stack: Airflow, Python (Pandas), PostgreSQL, Docker
+Data flow:
+    1) Ingest nba score data via NBA API
+    2) Transform using Pandas
+    3) Store in PostgreSQL
+    Bonus: Visualize with Tableau
+
+Pipeline is deployed on Docker, and scheduled to run daily with Airflow
+(Apache airflow will create spin up docker containers to run the job, doing so makes it easier to integrate to Kubernetes in the future)
