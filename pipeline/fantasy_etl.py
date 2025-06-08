@@ -10,28 +10,39 @@ from sqlalchemy import create_engine,text
 from sqlalchemy.exc import SQLAlchemyError
 from nba_api.live.nba.endpoints import scoreboard,boxscore
 from datetime import datetime, date
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 #Main method to execute
 def fantasy_etl_pipeline():
+    today = date.today()
     all_game_logs = []
     extracted_values = extract()
+    if not extracted_values:
+        logging.info("No games extracted on: %s", today)
+        return None
     for player_stats in extracted_values:
             cleaned_df = game_logs_transform(player_stats)
             all_game_logs.append(cleaned_df)
-
     combined_game_logs_df = pd.concat(all_game_logs, ignore_index=True)
     load(combined_game_logs_df,{'fantasy_score_per_game': 'fantasy_score_per_game','player_career_stats' : 'player_career_stats'})
     return combined_game_logs_df
 
 #Method to extract player statistics from NBA API, return list of extracted player statistics
 def extract():
-    logging.info("Extracting nba scores on date: ", date.today()
-)
+    today = date.today()
+    logging.info("Extracting nba scores on date: %s", today)
     extracted_player_stats = []
 
     try:
         board = scoreboard.ScoreBoard()
-        games = board.games.get_dict()
+        if not board.get_dict().get('games', []):
+            logging.info("No games found for today. Stopping extraction.")
+            return extracted_player_stats
+
+        games = board.get_dict()
         for game in games:
             box = boxscore.BoxScore(game['gameId'])
             player_stats = pd.concat(
@@ -43,18 +54,19 @@ def extract():
             )
             player_stats = player_stats.loc[player_stats['played'] == '1', ["personId", "name", "statistics"]]
             player_stats["matchup"] = game['awayTeam']['teamName'] + " vs. " + game['homeTeam']['teamName']
-            player_stats["game_date"] = datetime.strptime(board.score_board_date.get('game_date'), "%Y-%m-%d").date()
+            player_stats["game_date"] = datetime.strptime(game['gameTimeUTC'],  "%Y-%m-%dT%H:%M:%SZ").date()
+
             extracted_player_stats.append(player_stats)
             time.sleep(0.6)
 
     except Exception as e:
         logging.error(f"{e}")
-
     return extracted_player_stats
 
 #Method to perform data transformation on player statistics, return individual player stats dataframe
 def game_logs_transform(df: pd.DataFrame):
-    logging.info("Performing player stats data transformation on date: ", date.today())
+    today = date.today()
+    logging.info("transforming nba scores on date: %s", today)
     cols_to_keep = ['game_date','matchup','name','personId']
     cleaned_df = df[cols_to_keep].rename(columns={
         'game_date': 'game_date',
@@ -75,7 +87,8 @@ def game_logs_transform(df: pd.DataFrame):
 
 #Method to load transformed player statistics to respective db tables
 def load(df: pd.DataFrame,table_names: dict):
-    logging.info("Loading transformed data to database tables on date: ", date.today())
+    today = date.today()
+    logging.info("loading nba scores on date: %s", today)
     failed_rows = []
     try:
         engine = create_db_connection()
@@ -89,9 +102,8 @@ def load(df: pd.DataFrame,table_names: dict):
 
 
 def game_logs_load(df: pd.DataFrame,table_name: str,engine,failedRows: list):
-
     try:
-        df.to_sql('table_name', engine, if_exists='append', index=False, schema='public')
+        df.to_sql(table_name, engine, if_exists='append', index=False, schema='public')
         logging.info("fantasy_score_per_game records inserted successfully.")
     except SQLAlchemyError as e:
         logging.error(f"Error inserting into {table_name}: {e}")
@@ -125,7 +137,7 @@ def career_stats_load(df: pd.DataFrame,table_name: str,engine,failedRows: list):
                     """)
                     conn.execute(update_query, {'points': row['points'], 'assists': row['assists'], 'rebounds': row['rebounds'], 'steals': row['steals'], 'blocks': row['blocks'], 'turnovers': row['turnovers'],'fantasy_points': row['fantasy_points'], 'playerId': row['player_id'], 'seasonId' : season_id})
                 else:
-                    logging.debug(f"Player {row['name']} dont exist in current season: {season_id}, performing insert")
+                    logging.info(f"Player {row['name']} dont exist in current season: {season_id}, performing insert")
                     row[['player_id', 'season_id', 'name', 'points', 'assists','rebounds', 'steals', 'blocks', 'turnovers', 'fantasy_points']].to_frame().T.to_sql(table_name,engine,if_exists='append',index=False,schema='public')
     except SQLAlchemyError as e:
         logging.error(f"Error inserting into {table_name}: {e}")
@@ -161,6 +173,7 @@ def create_db_connection():
     db_port = os.getenv("POSTGRES_PORT", "5432")
     db_name = os.getenv("POSTGRES_DB", "fantasy_basketball_db")
     connection_uri = f'postgresql+psycopg2://{user}:{password}@{db_host}:{db_port}/{db_name}'
+
     engine = create_engine(connection_uri)
     return engine
 
@@ -170,4 +183,7 @@ def create_failed_records_csv(failed_records: list):
         record_path='data',
         meta=['table', 'date','data','error']
     )
-    flat_df.to_csv(f'failed_rows{date.today()}.csv', index=False)
+    flat_df.to_csv(f'/app/failed_records/failed_records_{date.today()}.csv', index=False)
+
+#Call function
+fantasy_etl_pipeline()

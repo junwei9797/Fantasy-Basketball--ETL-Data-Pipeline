@@ -1,5 +1,5 @@
 pandas
 python-dotenv
 sqlalchemy
+psycopg2-binary
 nba_api
-d

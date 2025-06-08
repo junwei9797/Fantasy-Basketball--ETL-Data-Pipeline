@@ -74,10 +74,12 @@ x-airflow-common:
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ../airflow/dags:/opt/airflow/dags
-    - ../airflow/dags:-.}/logs:/opt/airflow/logs
-    - ../airflow/dags:-.}/config:/opt/airflow/config
-    - ../airflow/dags:-.}/plugins:/opt/airflow/plugins
+    - ../airflow/logs:/opt/airflow/logs
+    - ../airflow/config:/opt/airflow/config
+    - ../airflow/plugins:/opt/airflow/plugins
+    - ../airflow/scripts:/opt/airflow/scripts
   user: "${AIRFLOW_UID:-50000}:0"
+
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -120,6 +122,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - fantasy_etl_network
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -185,6 +189,13 @@ services:
   airflow-worker:
     <<: *airflow-common
     command: celery worker
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/logs:/opt/airflow/logs
+      - ../airflow/config:/opt/airflow/config
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../airflow/scripts:/opt/airflow/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
       # yamllint disable rule:line-length
       test:
@@ -354,3 +365,8 @@ services:
 volumes:
   airflow-db-volume:
   pgdata:
+
+networks:
+  fantasy_etl_network:
+    name: fantasy_etl_network
+    driver: bridge
