@@ -12,5 +12,9 @@ RUN apt-get update && apt-get install -y python3 python3-pip curl
 COPY ../.env .
 RUN pip3 install --no-cache-dir -r dependencies.txt
 
-# Copy your Python initialization script
-COPY /pipeline/fantasy_etl.py .
+# Copy pipeline package
+COPY ../setup.py .
+COPY /pipeline ./pipeline
+
+# Install your package in editable mode
+RUN pip install -e .

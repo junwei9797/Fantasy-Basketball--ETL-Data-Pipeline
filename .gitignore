@@ -1,3 +1,6 @@
 .env
 .idea
-airflow
+/airflow/*
+!airflow/dags
+!airflow/config
+my_package.egg-info

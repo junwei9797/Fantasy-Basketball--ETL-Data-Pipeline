@@ -8,3 +8,11 @@ Data flow:
 
 Pipeline is deployed on Docker, and scheduled to run daily with Airflow
 (Apache airflow will create spin up docker containers to run the job, doing so makes it easier to integrate to Kubernetes in the future)
+
+
+DAG Name	                Populates	                        Schedule	                                        Dependencies
+extract_teams	            team	                            On season start	                                    none
+extract_players	            player,                             player_team (if separate) On season start	        extract_teams
+extract_games	            game	                            Daily or hourly	                                    extract_teams
+extract_stats	            fantasy_score_per_game, boxscore	Daily after games	                                extract_games, extract_players
+aggregate_career	        player_career_stats	                Daily/weekly	                                    extract_stats
