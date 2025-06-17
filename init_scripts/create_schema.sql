@@ -17,7 +17,7 @@ CREATE TABLE team (
 );
 
 CREATE TABLE game (
-    game_id BIGINT PRIMARY KEY,
+    game_id VARCHAR PRIMARY KEY,
     game_date DATE,
     home_team_id BIGINT,
     away_team_id BIGINT,
@@ -27,7 +27,7 @@ CREATE TABLE game (
 
 CREATE TABLE fantasy_score_per_game (
     player_id BIGINT  NOT NULL,
-    game_id BIGINT NOT NULL,
+    game_id VARCHAR NOT NULL,
     season_id VARCHAR(7) NOT NULL,
     points INTEGER,
     assists INTEGER,
