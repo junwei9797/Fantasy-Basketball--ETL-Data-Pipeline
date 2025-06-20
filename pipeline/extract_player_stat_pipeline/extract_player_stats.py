@@ -42,6 +42,8 @@ def transform_player_career_stats(df: pd.DataFrame):
         'BLK': 'blocks',
         'TO': 'turnovers'
     })
+    numeric_cols = ["points", "rebounds", "assists", "steals", "blocks", "turnovers"]
+    df[["points", "rebounds", "assists", "steals", "blocks", "turnovers"]] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
     df['fantasy_points'] = ((df["points"] * 1) + (df["rebounds"] * 1.2) + (df["assists"] * 1.5) + (df["steals"] * 3) + (df["blocks"] * 3) - (df["turnovers"] * 1)).round(1)
     df[['points','assists','rebounds','steals','blocks','turnovers']] = df[['points','assists','rebounds','steals','blocks','turnovers']].astype(int)
     return df
