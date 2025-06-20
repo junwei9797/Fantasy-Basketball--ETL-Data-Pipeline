@@ -15,6 +15,7 @@ def load_to_table(df: pd.DataFrame,table_name: str,engine,failedRows: list):
             logging.info(f"Successfully loaded {len(df)} records into '{table_name}'.")
         except SQLAlchemyError as e:
             logging.error(f"Error loading data into '{table_name}': {e}")
+            raise
         #     failedRows.append({
         #         "table": table_name,
         #         "date": date.today(),
@@ -47,6 +48,7 @@ def upsert_to_table(df: pd.DataFrame,table_name: str,engine,failedRows: list):
 
     except Exception as e:
         logging.error(f"Upsert failed for table {table_name}: {e}")
+        raise
     #     failedRows.append({
     #         "table": table_name,
     #         "date": date.today(),

@@ -4,9 +4,10 @@ from nba_api.stats.endpoints import BoxScoreTraditionalV2
 from datetime import date
 import pipeline.utils as utils
 
-def extract_box_scores(df: pd.DataFrame):
-    today = date.today()
-    logging.info("Extracting box scores on date: %s", today)
+def extract_box_scores(df: pd.DataFrame,extract_date= None):
+    if extract_date is None:
+        extract_date = date.today()
+    logging.info("Extracting box scores for date: %s", extract_date)
     combined_box_scores_df = None
     box_scores = []
     try:
@@ -28,8 +29,7 @@ def extract_box_scores(df: pd.DataFrame):
 
 
 def transform_player_career_stats(df: pd.DataFrame):
-    today = date.today()
-    logging.info("transforming player stats on date: %s", today)
+    logging.info("transforming player stats...")
     df = df[df['MIN'].notnull() & (df['MIN'] != '00:00')]
     df = df[
         ['PLAYER_ID', 'GAME_ID', 'season_id', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO']].rename(columns={

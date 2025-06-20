@@ -43,3 +43,4 @@ def load_player_career_stats (df: pd.DataFrame,table_name: str,engine,failedRows
             "data": df.to_dict(orient='records'),
             "error": str(e)
         })
+        raise
