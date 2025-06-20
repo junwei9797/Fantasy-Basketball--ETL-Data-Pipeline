@@ -16,5 +16,5 @@ def extract_player_pipeline():
         load_util.load_to_table(teams_df,'team',engine,[])
     logging.info("extract_team_pipeline: done")
 
-
-extract_player_pipeline()
+if __name__ == '__main__':
+    extract_player_pipeline()

@@ -23,7 +23,7 @@ def load_player_career_stats (df: pd.DataFrame,table_name: str,engine,failedRows
             load_util.load_to_table(df_to_insert,table_name,engine,failedRows)
 
             for idx, row in df_to_update.iterrows():
-                    logging.info(f"Player {row['name']} exists in current season: {season_id}, performing update")
+                    logging.info(f"Player {row['player_id']} exists in current season: {season_id}, performing update")
                     update_query = text(f"""update {table_name} 
                     set points = points + :points,
                     assists = assists + :assists,

@@ -17,5 +17,5 @@ def extract_player_pipeline():
         load_util.upsert_to_table(players_df,'player',engine,[])
     logging.info("extract_player_pipeline: done")
 
-
-extract_player_pipeline()
+if __name__ == '__main__':
+    extract_player_pipeline()

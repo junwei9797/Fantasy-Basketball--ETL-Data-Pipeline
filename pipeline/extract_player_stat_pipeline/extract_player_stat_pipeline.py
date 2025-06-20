@@ -23,4 +23,5 @@ def extract_player_stat_pipeline():
            load_player_stats.load_player_career_stats(box_scores_df,'player_career_stats', engine, [])
     logging.info("extract_player_stat_pipeline: done")
 
-extract_player_stat_pipeline()
+if __name__ == '__main__':
+    extract_player_stat_pipeline()
