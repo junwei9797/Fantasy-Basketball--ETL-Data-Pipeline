@@ -10,7 +10,7 @@ def extract_games(extract_date= None):
         extract_date = date.today()
         formatted_date = utils.get_nba_est_date()
     else:
-        formatted_date = datetime.strptime(extract_date, "%Y-%m-%d").date()
+        formatted_date = utils.get_nba_est_date(datetime.strptime(extract_date, "%Y-%m-%d").date())
     logging.info("Extracting nba games for date: %s", extract_date)
     games_df = None
     try:
